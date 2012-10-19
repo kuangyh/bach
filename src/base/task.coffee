@@ -8,25 +8,27 @@ task._stack = []
 
 task.current = () -> task._stack[task._stack.length - 1]
 
+###* Task runtime environment ###
 class task.Task
   constructor: (initFn, initThis) ->
     @_runtime =
-      running: false
-      stopped: false
-      pending: 0
-      excinfo: null
-      queue: []
-      after: []
-    if initFn?
-      @sched(initFn, initThis)
+      running: false    # if it's currently inside @run()
+      stopped: false    # if it's stopped, either normally or by exception
+      pending: 0        # How many wait() are call but not resume()
+      excinfo: null     # The exception that cause the task to stop
+      queue: []         # Pending run queue
+      after: []         # tasks to create and run after the task normally ended.
+    @sched(initFn, initThis)
 
+  ###* Schedule a new function to run in this task ###
   sched: (fn, target) ->
-    if not @_runtime.stopped
+    if bach.isa(fn, Function) and not @_runtime.stopped
       @_runtime.queue.push([fn, target])
       true
     else
       false
 
+  ###* Notify the task to wait for a resume() before end ###
   wait: () ->
     if not @_runtime.stopped
       @_runtime.pending += 1
@@ -34,6 +36,7 @@ class task.Task
     else
       false
 
+  ###* Notify the task to resume a wait() and perform the desire function ###
   resume: (fn, target) ->
     if @sched(fn, target) and @_runtime.pending > 0
       @_runtime.pending -= 1
@@ -43,6 +46,7 @@ class task.Task
     else
       false
 
+  ###* Schedule a task to run after this task successfully ended ###
   after: (fn, target) ->
     if not @_runtime.stopped
       @_runtime.after.push([fn, target])
@@ -50,6 +54,7 @@ class task.Task
     else
       false
 
+  ###* Run functions in queue until no more function or stopped by exception ###
   run: () ->
     if @_runtime.stopped or @_runtime.running
       return @
