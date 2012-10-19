@@ -12,3 +12,4 @@ compile:
 
 clean:
 	rm -rf lib/*
+	find examples -name '*.js' | xargs rm
