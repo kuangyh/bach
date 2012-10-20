@@ -37,5 +37,5 @@ bach.getId = (obj) ->
   obj.__id ?= 'object_' + (bach._lastObjectId += 1)
 
 bach.setId = (obj, id, withSuffix = false) ->
-  obj.__id = if withSuffix then id + '_' + (bach._lastObjectId += 1) else id
+  obj.__id = if withSuffix then id + '.#' + (bach._lastObjectId += 1) else id
   obj
