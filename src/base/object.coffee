@@ -30,3 +30,12 @@ bach.isa = (obj, t) ->
     (typeof(obj) is t) or (typeof(obj) is 'object' and obj['__conform_' + t] is true)
   else
     obj instanceof t
+
+bach._lastObjectId = 0
+
+bach.getId = (obj) ->
+  obj.__id ?= 'object_' + (bach._lastObjectId += 1)
+
+bach.setId = (obj, id, withSuffix = false) ->
+  obj.__id = if withSuffix then id + '_' + (bach._lastObjectId += 1) else id
+  obj
