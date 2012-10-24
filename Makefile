@@ -1,4 +1,4 @@
-INIT=lib/init.js
+INIT=lib/base.js
 BUNDLE=lib/bach.bundle.js
 
 example: bundle
