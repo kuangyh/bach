@@ -1,11 +1,12 @@
-INIT=lib/base.js
 BUNDLE=lib/bach.bundle.js
+
+CORE_LIB=lib/base.js lib/task.js lib/command.js lib/event.js 
 
 example: bundle
 	coffee -c examples
 
 bundle: compile
-	find lib -name '*.js' \! -path $(INIT) \! -path $(BUNDLE) | xargs cat $(INIT) > $(BUNDLE)
+	cat $(CORE_LIB) > $(BUNDLE)
 
 compile:
 	coffee -c -o lib src

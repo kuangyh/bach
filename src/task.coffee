@@ -83,8 +83,10 @@ class task.Task
         nextTask.spawn()
     @
 
+  ###* Spawn the task to run in next invocation of Javascript event loop ###
   spawn: () ->
-    setTimeout((-> @.run()), 0)
+    spawnTask = @
+    setTimeout((-> spawnTask.run()), 0)
     @
 
   isRunning: () -> @_runtime.running

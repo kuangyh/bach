@@ -13,7 +13,7 @@ bach.ns = (path) ->
 ###* Extend/mixin object with other objects ###
 bach.extend = (obj, exts...) ->
   for ext in exts
-    for k, v of ext when ext.hasOwnProperty(v)
+    for k, v of ext when ext.hasOwnProperty(k)
       obj[k] = v
   obj
 
