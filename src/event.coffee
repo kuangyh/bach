@@ -81,10 +81,11 @@ event.manager = new event.Manager()
 event.__currAutoSourceId = 0
 event.SourceImpl =
   getEventSourceId: ->
-    @__eventSourceId ?= 'auto_' + (event.__currAutoSourceId += 1)
+    @__id ?= 'auto_' + (event.__currAutoSourceId += 1)
 
   fireEvent: (type, opts) ->
     event.manager.fire(event.getChannel(@, type), new event.Event(@, type, opts))
+
 bach.conforms(event.SourceImpl, event.Source)
 
 ###* Become event source with default implementation ###
@@ -111,7 +112,7 @@ event.ListenerImpl =
     else
       # Find all listened channel with this source
       sourceId = event.getSourceId(source)
-      for chn, tmp of listens when event.getChannelSourceid(chn) == sourceId
+      for chn, tmp of listens when event.getChannelSourceId(chn) == sourceId
         event.manager.unlisten(chn, @)
         delete listens[chn]
     null
@@ -123,7 +124,9 @@ event.ListenerImpl =
       event.manager.unlisten(chn)
     delete @__listens
     null
+
 bach.conforms(event.ListenerImpl, event.Listener)
 
+###* Become event listener with default implementation ###
 event.asListener = (obj) ->
   bach.extend(obj, event.ListenerImpl)

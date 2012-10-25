@@ -26,11 +26,10 @@ class command.Command
 command.send = (dst, cmd, args...) ->
   if not bach.isa(cmd, command.Command)
     cmd = new command.Command(cmd, args...)
-  if not task.current()?
-    t = new task.Task(-> cmd.apply(dst))
-    t.run()
-  else
-    task.current().sched(-> cmd.apply(dst))
+  t = task.current()
+  if not t?
+    t = new task.Task()
+  t.sched(-> cmd.apply(dst))
   cmd
 
 ###* Execute command after current task done, create and spawn if currently not in task ###
@@ -38,8 +37,7 @@ command.sendAfter = (dst, cmd, args...) ->
   if not bach.isa(cmd, command.Command)
     cmd = new command.Command(cmd, args...)
   if not task.current()?
-    t = new task.Task(-> cmd.apply(dst))
-    t.spawn()
+    (new task.Task()).sched(-> cmd.apply(dst))
   else
     task.current().after(-> cmd.apply(dst))
   cmd
@@ -48,6 +46,5 @@ command.sendAfter = (dst, cmd, args...) ->
 command.sendSpawn = (dst, cmd, args...) ->
   if not bach.isa(cmd, command.Command)
     cmd = new command.Command(cmd, args...)
-  t = new task.Task(-> cmd.apply(dst))
-  t.spawn()
+  (new task.Task()).sched(-> cmd.apply(dst))
   cmd
