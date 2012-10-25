@@ -5,8 +5,10 @@ Behaviors casued by user action/event or timer are organized in tasks.
 task = bach.ns('bach.task')
 
 task._stack = []
-task.current = () -> task._stack[task._stack.length - 1]
 
+###* Get the current running task. ###
+task.current = () ->
+  task._stack[task._stack.length - 1]
 
 ###* Task runtime environment ###
 class task.Task
@@ -75,14 +77,15 @@ class task.Task
     @_runtime.running = false
 
     if @_runtime.stopped
-      # stopped with no exception, can spawn after tasks
       for spec in @_runtime.after
-        @_spawnTask(spec...)
+        nextTask = new task.Task(spec...)
+        nextTask.beforeTask = @
+        nextTask.spawn()
     @
 
-  _spawnTask: (fn, target) ->
-    beforeTask = @
-    setTimeout((-> (new task.Task((-> fn.call(@, beforeTask)), target)).run()), 0)
+  spawn: () ->
+    setTimeout((-> @.run()), 0)
+    @
 
   isRunning: () -> @_runtime.running
   isStopped: () -> @_runtime.stopped
