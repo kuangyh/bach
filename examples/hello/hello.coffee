@@ -23,4 +23,3 @@ hello.start = () ->
   hello.person = new hello.Person('Yuheng')
   hello.observer = new hello.Observer(hello.person)
   hello.person.grow()
-

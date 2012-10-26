@@ -39,4 +39,12 @@ bach.isa = (obj, t) ->
   if typeof(t) is 'string'
     (typeof(obj) is t) or (typeof(obj) is 'object' and obj['__conform_' + t] is true)
   else
-    obj instanceof t
+    (obj? and obj.constructor == t) or (obj instanceof t)
+
+###* Check type and assertion ###
+bach.check = (obj, type, assertFn) ->
+  if type? and not bach.isa(obj, type)
+    throw new TypeError("#{obj} is not a #{type}")
+  if assertFn? and not assertFn(obj)
+    throw new TypeError('Assert error')
+  obj
