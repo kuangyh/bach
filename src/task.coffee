@@ -94,3 +94,21 @@ class task.Task
   isStopped: () -> @_runtime.stopped
   getException: () -> @_runtime.excinfo
   isDone: () -> @isStopped() and not @getException()?
+
+###* Shortcut: sched in current task ###
+task.sched = (fn, target) ->
+  if (curr = task.current())?
+    curr.sched(fn, target)
+  else
+    task.spawn(fn, target)
+
+###* Shortcut: after current task ###
+task.after = (fn, target) ->
+  if (curr = task.current())?
+    curr.after(fn, target)
+  else
+    task.spawn(fn, target)
+
+###* Shortcut: new task ###
+task.spawn = (fn, target) ->
+  (new task.Task()).sched(fn, target)
