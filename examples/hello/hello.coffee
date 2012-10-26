@@ -14,7 +14,7 @@ class hello.Person
 
 class hello.Observer
   constructor: () ->
-    event.bus.on('hello.Person.grow', @, 'greeting')
+    event.bus.bind('hello.Person.grow', @, 'greeting')
 
   greeting: (evt) ->
     alert('Happy birthday! ' + evt.target.name)

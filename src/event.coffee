@@ -13,8 +13,8 @@ class event.Event
 ###* Protocol event target
 * Methods
 *   - trigger(type, opts) => triggers an event on this object
-*   - on(type, dst, method) => Listens an event
-*   - off(type, dst) => Unlisten an event
+*   - bind(type, dst, method) => Listens an event
+*   - unbind(type, dst) => Unlisten an event
 ###
 event.Target = 'protocol:bach.event.Target'
 
@@ -22,11 +22,11 @@ class event.Manager
   constructor: ->
     @pool = {}
 
-  on: (type, dst, method) ->
+  bind: (type, dst, method) ->
     (@pool[type] ?= []).push([dst, method])
     type
 
-  off: (type, dst) ->
+  unbind: (type, dst) ->
     removeFromQueue = (t) ->
       queue = @pool[t]
       if queue?
@@ -64,11 +64,11 @@ class event.Manager
 
 ###* Default Target implementation, use event.Manager ###
 event.TargetImpl =
-  on: (type, dst, method) ->
-    (@__eventManager ?= new event.Manager()).on(type, dst, method)
+  bind: (type, dst, method) ->
+    (@__eventManager ?= new event.Manager()).bind(type, dst, method)
 
-  off: (type, dst, method) ->
-    (@__eventManager ?= new event.Manager()).off(type, dst, method)
+  unbind: (type, dst, method) ->
+    (@__eventManager ?= new event.Manager()).unbind(type, dst, method)
 
   trigger: (type, opts) ->
     (@__eventManager ?= new event.Manager()).trigger(
