@@ -3,31 +3,24 @@ event = bach.ns('bach.event')
 command = bach.ns('bach.command')
 
 class hello.Person
-  event.asSource(@::)
+  event.asTarget(@::)
 
-  grow: () -> @fireEvent('grow')
+  __channel: 'hello.Person'
+
+  constructor: (@name) ->
+
+  grow: ->
+    @trigger('grow')
 
 class hello.Observer
-  event.asListener(@::)
+  constructor: () ->
+    event.bus.on('hello.Person.grow', @, 'greeting')
 
-  constructor: (person) ->
-    @listenEvent(person, 'grow', 'onPersonGrow')
-
-  onPersonGrow: () ->
-    alert('Happy Birthday!')
-    command.sendAfter(@, 'done')
-    command.send(@, 'middle')
-    command.send(@, 'middle')
-
-  middle: () ->
-    alert('Middle')
-
-  done: () ->
-    alert('Done')
-
+  greeting: (evt) ->
+    alert('Happy birthday! ' + evt.target.name)
 
 hello.start = () ->
-  hello.person = new hello.Person()
+  hello.person = new hello.Person('Yuheng')
   hello.observer = new hello.Observer(hello.person)
   hello.person.grow()
 

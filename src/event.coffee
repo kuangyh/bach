@@ -5,128 +5,81 @@
 event = bach.ns('bach.event')
 command = bach.ns('bach.command')
 
-###* Protocol Source
-* Methods
-*   - getEventSourceId(): String, return id string to uniquely identify this object
-*   - fireEvent(type, opts): Fire an event
-###
-event.Source = 'protocol:bach.event.Source'
-
-###* Protocol Listener
-* Methods
-*   - listenEvent(source, type, triggerMethod)
-*   - unlistenEvent(source, type=null)
-*   - unlistenEvents()
-###
-event.Listener = 'protocol:bach.event.Listener'
-
+###* Event payload ###
 class event.Event
-  constructor: (@source, @type, opts) ->
-    if opts?
-      bach.extend(@, opts)
+  constructor: (@target, @type, opts) ->
+    bach.extend(@, opts)
 
-###* Get source id of a source (or a sourceId) ###
-event.getSourceId = (source) ->
-  if bach.isa(source, String)
-    source
-  else if bach.isa(source, event.Source)
-    source.getEventSourceId()
-  else
-    null
+###* Protocol event target
+* Methods
+*   - trigger(type, opts) => triggers an event on this object
+*   - on(type, dst, method) => Listens an event
+*   - off(type, dst) => Unlisten an event
+###
+event.Target = 'protocol:bach.event.Target'
 
-###* Get channel string to subscribe in event.Manager from source and type ###
-event.getChannel = (source, type) ->
-  if not (sourceId = @getSourceId(source))?
-    return null
-  sourceId + '#' + type
-
-###* Get sourceId of a channel ###
-event.getChannelSourceId = (channel) ->
-  sharp = channel.indexOf('#')
-  if sharp >= 0 then channel.substring(0, sharp) else null
-
-###* Get type of a channel ###
-event.getChannelType = (channel) ->
-  sharp = channel.indexOf('#')
-  if sharp >= 0 then channel.substring(sharp + 1) else null
-
-
-###* Manages all event subscribtion ###
 class event.Manager
   constructor: ->
-    @subs = {}
+    @pool = {}
 
-  listen: (channel, target, targetMethod) ->
-    (@subs[channel] ?= []).push([target, targetMethod])
-    channel
+  on: (type, dst, method) ->
+    (@pool[type] ?= []).push([dst, method])
+    type
 
-  unlisten: (channel, target) ->
-    queue = @subs[channel]
-    if queue?
-      queue = queue.filter((x) -> x[0] != target)
-      if queue.length > 0
-        @subs[channel] = queue
-      else
-        delete @subs[channel]
-    null
+  off: (type, dst) ->
+    removeFromQueue = (t) ->
+      queue = @pool[t]
+      if queue?
+        queue = queue.filter((x) -> x[0] != dst)
+        if queue.length > 0
+          @pool[t] = queue
+        else
+          delete @pool[t]
+      t
 
-  fire: (channel, evt) ->
-    for [target, targetMethod] in (@subs[channel] or [])
-      command.send(target, targetMethod, evt)
+    if type == '*'
+      for t, q of @pool
+        removeFromQueue(t)
+    else if type[-2..] == '.*'
+      prefix = type[..-2]
+      for t, q of @pool when t[..prefix.length - 1] == prefix
+        removeFromQueue(t)
+    else
+      removeFromQueue(type)
+    type
+
+  trigger: (evt) ->
+    # Find all types to trigger
+    types = [evt.type]
+    if (sections = evt.type.split('.')).length > 1
+      for endPos in [sections.length - 2 .. 0]
+        types.push(sections[..endPos].join('.') + '.*')
+    types.push('*')
+
+    # Triggers using command
+    for triggerType in types
+      for [dst, method] in (@pool[triggerType] or [])
+        command.send(dst, method, evt)
     evt
 
-event.manager = new event.Manager()
+###* Default Target implementation, use event.Manager ###
+event.TargetImpl =
+  on: (type, dst, method) ->
+    (@__eventManager ?= new event.Manager()).on(type, dst, method)
 
-# Default implementation for event.Source
-event.__currAutoSourceId = 0
-event.SourceImpl =
-  getEventSourceId: ->
-    @__id ?= 'auto_' + (event.__currAutoSourceId += 1)
+  off: (type, dst, method) ->
+    (@__eventManager ?= new event.Manager()).off(type, dst, method)
 
-  fireEvent: (type, opts) ->
-    event.manager.fire(event.getChannel(@, type), new event.Event(@, type, opts))
+  trigger: (type, opts) ->
+    (@__eventManager ?= new event.Manager()).trigger(
+      new event.Event(@, type, opts))
+    # When channel setted, broadcast though event bus
+    if @__channel?
+      event.bus.trigger(new event.Event(@, @__channel + '.' + type, opts))
+bach.conforms(event.TargetImpl, event.Target)
 
-bach.conforms(event.SourceImpl, event.Source)
+###* Enable target protocol with default implementation ###
+event.asTarget = (obj) ->
+  bach.extend(obj, event.TargetImpl)
 
-###* Become event source with default implementation ###
-event.asSource = (obj) ->
-  bach.extend(obj, event.SourceImpl)
-
-# Default implementation for event.Listener
-# listener.__listens to store all channels the object listens to
-event.ListenerImpl =
-  listenEvent: (source, type, triggerMethod) ->
-    if not (channel = event.getChannel(source, type))?
-      return null
-    event.manager.listen(channel, @, triggerMethod)
-    (@__listens ?= {})[channel] = true
-    channel
-
-  unlistenEvent: (source, type) ->
-    if not (listens = @__listens)?
-      return null
-    if type?
-      channel = event.getChannel(source, type)
-      event.manager.unlisten(channel, @)
-      delete listens[channel]
-    else
-      # Find all listened channel with this source
-      sourceId = event.getSourceId(source)
-      for chn, tmp of listens when event.getChannelSourceId(chn) == sourceId
-        event.manager.unlisten(chn, @)
-        delete listens[chn]
-    null
-
-  unlistenEvents: () ->
-    if not (listens = @__listens)?
-      return null
-    for chn, tmp of listens
-      event.manager.unlisten(chn)
-    delete @__listens
-    null
-
-bach.conforms(event.ListenerImpl, event.Listener)
-
-###* Become event listener with default implementation ###
-event.asListener = (obj) ->
-  bach.extend(obj, event.ListenerImpl)
+event.bus = new event.Manager()
