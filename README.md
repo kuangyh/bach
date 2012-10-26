@@ -34,6 +34,7 @@ event.Target = 'protocol:bach.event.Target'
 
 class event.TargetImpl
   bach.conforms(@::, event.Target)
+  ... # Implementations
 
 bach.isa(new event.TargetImpl(), event.Target) # => true
 </pre>
