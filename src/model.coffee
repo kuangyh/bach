@@ -30,3 +30,19 @@ class model.Change
 ###
 model.Model = bach.protocol('bach.model.Model')
 
+###* A simple single value model ###
+class model.Value
+  bach.conforms(@::, model.Model)
+
+  constructor: (init) ->
+    @value = init
+
+  get: -> @value
+
+  set: (newValue) ->
+    (new model.Change()).add('set', newValue, @value).publish(@)
+    @value = newValue
+
+  set: (newValue) ->
+    @swap(newValue)
+    newValue
