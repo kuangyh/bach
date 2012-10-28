@@ -16,7 +16,7 @@ class event.Event
 *   - bind(type, dst, method) => Listens an event
 *   - unbind(type, dst) => Unlisten an event
 ###
-event.Target = 'protocol:bach.event.Target'
+event.Target = bach.protocol('bach.event.Target')
 
 class event.Manager
   constructor: ->

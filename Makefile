@@ -1,6 +1,6 @@
 BUNDLE=lib/bach.bundle.js
 
-CORE_LIB=lib/base.js lib/task.js lib/command.js lib/event.js 
+CORE_LIB=lib/base.js lib/task.js lib/command.js lib/event.js lib/model.js
 
 example: bundle
 	coffee -c examples

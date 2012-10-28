@@ -17,6 +17,20 @@ bach.extend = (obj, exts...) ->
       obj[k] = v
   obj
 
+class bach.Protocol
+  constructor: (@name, _extends...) ->
+    # All direct and indirect extended protocol's name
+    @_extends = []
+    extendDict = {}
+    for ext in _extends when not (ext.name in extendDict)
+      extendDict[ext.name] = true
+      for indirectExtName in ext._extends
+        extendDict[indirectExtName] = true
+    for k, v of extendDict
+      @_extends.push(k)
+
+bach.protocol = (args...) -> new bach.Protocol(args...)
+
 ###*
 * Declares object conforms to some protocol(s)
 * Protocol is a string like 'bach.event.Target'
@@ -27,7 +41,9 @@ bach.extend = (obj, exts...) ->
 ###
 bach.conforms = (obj, protocols...) ->
   for protocol in protocols
-    obj['__conform_' + protocol] = true
+    obj['__conform_' + protocol.name] = true
+    for ext in protocol._extends
+      obj['__conform_' + ext] = true
   obj
 
 ###*
@@ -37,7 +53,9 @@ bach.conforms = (obj, protocols...) ->
 ###
 bach.isa = (obj, t) ->
   if typeof(t) is 'string'
-    (typeof(obj) is t) or (typeof(obj) is 'object' and obj['__conform_' + t] is true)
+    (typeof(obj) is t)
+  else if obj? and t.constructor == bach.Protocol
+    obj['__conform_' + t.name] == true
   else
     (obj? and obj.constructor == t) or (obj instanceof t)
 

@@ -7,7 +7,7 @@ task = bach.ns('bach.task')
 * Methods
 *   - execute(cmd: command.Command)
 ###
-command.HasExecute = 'protocol:bach.command.HasExecute'
+command.HasExecute = bach.protocol('bach.command.HasExecute')
 
 class command.Command
   constructor: (@method, @args...) ->
