@@ -65,6 +65,14 @@ class task.Task
     else
       false
 
+  ###* Stop a task ###
+  stop: (excinfo) ->
+    if @_runtime.stopped
+      false
+    @_runtime.stopped = true
+    @_runtime.excinfo = excinfo
+    true
+
   ###* Schedule a task to run after this task ended ###
   after: (fn, target) ->
     if not @_runtime.stopped
@@ -81,10 +89,9 @@ class task.Task
     try
       fn.call(target)
     catch e
-      @_runtime.excinfo = e
-      @_runtime.stopped = true
+      @stop(e)
     if @_runtime.pending == 0
-      @_runtime.stopped = true
+      @stop()
 
     if @_runtime.stopped
       for [afterFn, afterTarget] in @_runtime.after
