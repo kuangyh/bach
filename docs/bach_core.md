@@ -6,7 +6,7 @@ Counterpart to backbone.js but takes another approach.
 
 [base.coffee](../src/base.coffee)
 
-<pre>dom = bach.ns('bach.ui.dom')</pre>
+	dom = bach.ns('bach.ui.dom')
 
 Reference to a namespace, create one if not exists.
 
@@ -14,7 +14,7 @@ Reference to a namespace, create one if not exists.
 
 [base.coffee](../src/base.coffee)
 
-Bach introduce **Protocol**, it's like **interface** in Java but you don't explicitly define actually interface like methods, actually constrains and behavior definition to the protocol are often documented inline.
+Bach introduce **Protocol**, it's like `interface` in Java but you don't explicitly define actually interface like methods, actually constrains and behavior definition to the protocol are often documented inline.
 
 
 	###* Protocol Model
@@ -35,7 +35,7 @@ Bach introduce **Protocol**, it's like **interface** in Java but you don't expli
 	  # implementation
 	  ……
 
-You can test conform of an object against Protocol using bach's type checking function bach.isa
+You can test conform of an object against Protocol using bach's type checking function `bach.isa()`
 
 
 	feed = new feed.Feed()
@@ -73,10 +73,10 @@ Task provides a way to organize a set of asynchronously invoked functions that a
 
 Task framework solve fundamental problems in tasks similar to above, those problems are caused by heavily use of event and by async nature of Javascript.
 
-   - **Asynchronies invoke**: There may be many handlers for an event triggered. Rather than call them directly on current stack, we need to asynchronously invoke them, **sched** them to run after the event trigger function returned.
-   - **Task completion callback**: In the refresh task example, we need to hide the spin loading indicator after all refreshes done. So we need a **after** feature to register the callback.
-   - **Wait and resume**: **after** feature leads to question about defining completion of a task, after we issued sever request but before the server response, the task is definitely not done, even when no more scheduled function to run. So in this case we tell task to **wait**, it just change a counter, no blocking here. When server response and oncomplete callback invoked, we **resume** the task. The task ends when no more scheduled function to run and nothing to wait.
-   - **Force stop / Exception handling**: We may have "stop" button to stop refreshing. When we hit stop before the response returned. We can just **stop** the task, all scheduled functions and callbacks to be resumed will not be run anymore. The same rules applies to exception: when one of the task function throws an exception, the whole task can be stopped/canceled.
+   - **Asynchronies invoke**: There may be many handlers for an event triggered. Rather than call them directly on current stack, we need to asynchronously invoke them, `sched` them to run after the event trigger function returned.
+   - **Task completion callback**: In the refresh task example, we need to hide the spin loading indicator after all refreshes done. So we need a `after` feature to register the callback.
+   - **Wait and resume**: **after** feature leads to question about defining completion of a task, after we issued sever request but before the server response, the task is definitely not done, even when no more scheduled function to run. So in this case we tell task to `wait`, it just change a counter, no blocking here. When server response and oncomplete callback invoked, we `resume` the task. The task ends when no more scheduled function to run and nothing to wait.
+   - **Force stop / Exception handling**: We may have "stop" button to stop refreshing. When we hit stop before the response returned. We can just `stop` the task, all scheduled functions and callbacks to be resumed will not be run anymore. The same rules applies to exception: when one of the task function throws an exception, the whole task can be stopped/canceled.
    
 So there are 5 operation to task
 
@@ -98,7 +98,24 @@ There's no protocol check upon executing and we should have. It's a TODO item.
 
 ## Event
 
+[event.coffee](../src/event.coffee)
 
+A event target that can be listened should conforms to `bach.event.Target`. It should have following methods
+
+   - `bind(type, receiver, method)`
+   - `unbind(type, receiver)`
+   - `trigger(type, opts)`
+  
+When talking about event handling, we take an old-school Object-Oriented view. Note that we bind receiver and method instead of function for event type. When the event triggered, we create a `Command` with the binder method and event object, then *send* the command to receiver asynchronously via. `task.sched()`.
+
+Of course bach provide default implementation for `bach.event.Target`, mixin it into your class or object by `bach.event.asTarget`.
+
+Other features of default implementation:
+
+   - **Event type wildcard**: If you listens to `click.*`, event `click.button` will trigger you handler too. You can even listens to `*`, receiving all events.
+   - **Event bus**: If the event target has `__channel` property, the event will be also publish to a global event bus with event type `{__channel}.{triggeredType}`. Bind your handler to `bach.event.bus` to receive them, event type wildcard also works in here.
+
+**Note:** Be very careful to memory leak caused by event binding. The binding creates a reference from event target to the receiver, so the receiver will not be garbage collected before the event target be collected. So if you want to delete the receiver (often a controller managed in controller tree, don't forget to unbind.
 
 ## Model
 
