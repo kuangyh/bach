@@ -90,7 +90,7 @@ class task.Task
       fn.call(target)
     catch e
       @stop(e)
-    if @_runtime.pending == 0
+    if not @_runtime.stopped and @_runtime.pending == 0
       @stop()
 
     if @_runtime.stopped
