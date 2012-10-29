@@ -4,11 +4,15 @@ Counterpart to backbone.js but takes another approach.
 
 ## Namespace management
 
+[base.coffee](../src/base.coffee)
+
 <pre>dom = bach.ns('bach.ui.dom')</pre>
 
 Reference to a namespace, create one if not exists.
 
 ## Protocol
+
+[base.coffee](../src/base.coffee)
 
 Bach introduce **Protocol**, it's like **interface** in Java but you don't explicitly define actually interface like methods, actually constrains and behavior definition to the protocol are often documented inline.
 
@@ -44,6 +48,7 @@ You can use Protocol mechanism to avoid duck-typing flaws. Do test object agains
 
 ## Object shortcuts
 
+[base.coffee](../src/base.coffee)
 
 	bach.extend(object, exits…)
 
@@ -60,7 +65,9 @@ Same as other Javascript libraries provided.
 
 Bach's all-in-one type checking function.
 
-## Task framework
+## Task
+
+[task.coffee](../src/task.coffee)
 	
 Task provides a way to organize a set of asynchronously invoked functions that all together accomplish a feature. For example, clicking "refresh" button on UI starts a refresh task, the task may includes the original event handler function that issues AJAX request to server, callback function to parse data received, UI update functions triggered by data model changes etc.
 
@@ -81,12 +88,18 @@ So there are 5 operation to task
 
 ## Command
 
-Command provides a way to specify method invocation but leave the receiver of the invocation as blank --- So it's different from the classical [Command pattern](http://en.wikipedia.org/wiki/Command_pattern). Because we don't specify receiver at creation of command, we can dynamically route the command to different receiver (or even multiple receivers at one time).
+[command.coffee](../src/command.coffee)
+
+Command provides a way to specify method invocation but leave the receiver of the invocation as blank, which is different from the classical [Command pattern](http://en.wikipedia.org/wiki/Command_pattern). Because we don't specify receiver at creation of command, we can dynamically route the command to different receiver (or even multiple receivers at one time).
 
 In addition, object can conforms to `bach.command.HasExecute` protocol and provide a `execute(cmd)` method to execute command received rather than been automatically delegated to actual method.
+
+There's no protocol check upon executing and we should have. It's a TODO item.
 
 ## Event
 
 
+
 ## Model
 
+## Net
