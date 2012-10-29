@@ -81,6 +81,9 @@ So there are 5 operation to task
 
 ## Command
 
+Command provides a way to specify method invocation but leave the receiver of the invocation as blank --- So it's different from the classical [Command pattern](http://en.wikipedia.org/wiki/Command_pattern). Because we don't specify receiver at creation of command, we can dynamically route the command to different receiver (or even multiple receivers at one time).
+
+In addition, object can conforms to `bach.command.HasExecute` protocol and provide a `execute(cmd)` method to execute command received rather than been automatically delegated to actual method.
 
 ## Event
 
